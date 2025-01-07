@@ -14,18 +14,16 @@ using udim = unsigned int;
 /// @param shape 张量的形状
 /// @return 张量每维度的访问步长
 std::vector<udim> strides(std::vector<udim> const &shape) {
-    if (shape.empty()) return {};
-
     std::vector<udim> strides(shape.size());
-
-    // 初始化最后一个维度的步长为 1
-    udim stride = 1;
-    // 使用 const_reverse_iterator 遍历 shape，并使用普通迭代器遍历 strides
-    for (auto it = shape.crbegin(), sit = strides.rbegin(); it != shape.crend(); ++it, ++sit) {
-        *sit = stride;
-        stride *= *it;
+    
+    // 从最后一维开始计算
+    udim current_stride = 1;
+    for (auto it = shape.rbegin(); it != shape.rend(); ++it) {
+        auto idx = std::distance(it, shape.rend()) - 1;
+        strides[idx] = current_stride;
+        current_stride *= *it;
     }
-
+    
     return strides;
 }
 

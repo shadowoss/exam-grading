@@ -1,6 +1,5 @@
 ﻿#include "../exercise.h"
 #include <cstring>
-#include <stdexcept>
 
 // READ: 类模板 <https://zh.cppreference.com/w/cpp/language/class_template>
 
@@ -9,52 +8,60 @@ struct Tensor4D {
     unsigned int shape[4];
     T *data;
 
-    // 构造函数
     Tensor4D(unsigned int const shape_[4], T const *data_) {
-        std::memcpy(shape, shape_, 4 * sizeof(unsigned int));
         unsigned int size = 1;
-        for (int i = 0; i < 4; ++i) {
+        // 计算总大小并复制形状
+        for (int i = 0; i < 4; i++) {
+            shape[i] = shape_[i];
             size *= shape[i];
         }
         data = new T[size];
         std::memcpy(data, data_, size * sizeof(T));
     }
-
-    // 析构函数
     ~Tensor4D() {
         delete[] data;
     }
 
-    // 禁止复制和移动
+    // 为了保持简单，禁止复制和移动
     Tensor4D(Tensor4D const &) = delete;
     Tensor4D(Tensor4D &&) noexcept = delete;
 
-    // 加法操作符，支持单向广播
+    // 这个加法需要支持“单向广播”。
+    // 具体来说，`others` 可以具有与 `this` 不同的形状，形状不同的维度长度必须为 1。
+    // `others` 长度为 1 但 `this` 长度不为 1 的维度将发生广播计算。
+    // 例如，`this` 形状为 `[1, 2, 3, 4]`，`others` 形状为 `[1, 2, 1, 4]`，
+    // 则 `this` 与 `others` 相加时，3 个形状为 `[1, 2, 1, 4]` 的子张量各自与 `others` 对应项相加。
     Tensor4D &operator+=(Tensor4D const &others) {
-        // 检查形状是否可以广播
-        for (int i = 0; i < 4; ++i) {
-            if (shape[i] != others.shape[i] && others.shape[i] != 1) {
-                throw std::invalid_argument("Shapes are not broadcastable.");
+        // 计算广播后的索引映射
+        unsigned int total_size = 1;
+        for (int i = 0; i < 4; i++) {
+            // 检查广播条件
+            if (others.shape[i] != 1 && others.shape[i] != shape[i]) {
+                throw std::invalid_argument("Invalid broadcast shape");
             }
+            total_size *= shape[i];
         }
 
-        // 进行广播加法
-        unsigned int size = 1;
-        for (int i = 0; i < 4; ++i) {
-            size *= shape[i];
-        }
-
-        // 逐元素相加
-        for (unsigned int i = 0; i < size; ++i) {
-            // 计算 `others` 对应的索引
-            unsigned int others_idx = i;
-            for (int dim = 3; dim >= 0; --dim) {
-                if (others.shape[dim] == 1) {
-                    others_idx %= others.shape[dim];
-                } else {
-                    break;
-                }
+        // 执行广播加法
+        for (unsigned int i = 0; i < total_size; i++) {
+            // 计算4D索引
+            unsigned int idx[4];
+            unsigned int temp = i;
+            for (int d = 3; d >= 0; d--) {
+                idx[d] = temp % shape[d];
+                temp /= shape[d];
             }
+
+            // 计算others的对应索引
+            unsigned int others_idx = 0;
+            unsigned int stride = 1;
+            for (int d = 3; d >= 0; d--) {
+                // 如果该维度长度为1，则使用0，否则使用实际索引
+                unsigned int idx_d = others.shape[d] == 1 ? 0 : idx[d];
+                others_idx += idx_d * stride;
+                stride *= others.shape[d];
+            }
+
             data[i] += others.data[others_idx];
         }
 
