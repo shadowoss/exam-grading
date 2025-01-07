@@ -9,30 +9,38 @@ class DynFibonacci {
     int cached;
 
 public:
-    // TODO: 实现动态设置容量的构造器
-    DynFibonacci(int capacity) : cache(new size_t[capacity]), cached(1) {
-        cache[0] = 0;  // Fibonacci(0) = 0
-        cache[1] = 1;  // Fibonacci(1) = 1
+    // 构造函数：初始化缓存数组和已缓存数量
+    DynFibonacci(int capacity): cache(new size_t[capacity]), cached(1) {
+        cache[0] = 0;  // 初始化第一个斐波那契数
+        if (capacity > 1) {
+            cache[1] = 1;  // 初始化第二个斐波那契数
+            cached = 2;
+        }
     }
 
-    // TODO: 实现复制构造器
-    DynFibonacci(DynFibonacci const &) = default;
+    // 复制构造函数：深拷贝
+    DynFibonacci(DynFibonacci const &other) {
+        cached = other.cached;
+        cache = new size_t[cached];
+        for (int i = 0; i < cached; i++) {
+            cache[i] = other.cache[i];
+        }
+    }
 
-    // TODO: 实现析构器，释放缓存空间
+    // 析构函数：释放动态分配的内存
     ~DynFibonacci() {
         delete[] cache;
     }
 
-    // TODO: 实现正确的缓存优化斐波那契计算
+    // 计算并缓存斐波那契数列
     size_t get(int i) {
-        if (i <= cached) {
+        if (i < cached) {
             return cache[i];
         }
-
-        for (int j = cached + 1; j <= i; ++j) {
-            cache[j] = cache[j - 1] + cache[j - 2];  // Fibonacci recurrence relation
+        
+        for (; cached <= i; ++cached) {
+            cache[cached] = cache[cached - 1] + cache[cached - 2];
         }
-        cached = i;  // Update the cached index
         return cache[i];
     }
 
@@ -45,7 +53,6 @@ public:
             return cache[i];
         }
         ASSERT(false, "i out of range");
-        return 0;  // This line won't be reached due to ASSERT
     }
 };
 

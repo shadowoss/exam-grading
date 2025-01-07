@@ -49,10 +49,10 @@ int main(int argc, char **argv) {
 
     // ---- 不要修改以上代码 ----
 
-    std::vector<std::string> answers[]{
-        {"rd"},  // 第一组操作的结果
-        {"rr", "rd"},  // 第二组操作的结果
-        {"r", "rrd", "rd", "d"}  // 第三组操作的结果
+    std::vector<const char *> answers[]{
+            {"fd"},
+            {"ff", "rd"},
+            {"", "r", "d"},
     };
 
     // ---- 不要修改以下代码 ----
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     for (auto i = 0; i < 3; ++i) {
         ASSERT(problems[i].size() == answers[i].size(), "wrong size");
         for (auto j = 0; j < problems[i].size(); ++j) {
-            ASSERT(problems[i][j] == answers[i][j], "wrong location"); // 使用 std::string 的比较
+            ASSERT(std::strcmp(problems[i][j].c_str(), answers[i][j]) == 0, "wrong location");
         }
     }
 
