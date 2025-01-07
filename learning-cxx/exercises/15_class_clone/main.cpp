@@ -4,19 +4,6 @@
 // READ: 函数定义（显式弃置）<https://zh.cppreference.com/w/cpp/language/function>
 
 
-// 定义 ASSERT 宏，用于调试断言
-#ifdef NDEBUG
-#define ASSERT(condition, message) ((void)0)
-#else
-#define ASSERT(condition, message) \
-  do { \
-    if (!(condition)) { \
-      std::cerr << "Assertion failed: " << message << " at " << __FILE__ << ":" << __LINE__ << std::endl; \
-      std::abort(); \
-    } \
-  } while (0)
-#endif
-
 class DynFibonacci {
     size_t *cache;
     int cached;
